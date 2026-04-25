@@ -277,7 +277,7 @@ export default function FriendsScreen({ profile }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="min-h-screen bg-[#f5f5f7] pb-28"
+      className="min-h-screen bg-[#f5f5f7] pb-[calc(7rem+env(safe-area-inset-bottom))]"
     >
       {/* Background blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -285,12 +285,77 @@ export default function FriendsScreen({ profile }) {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-blue-100/40 to-indigo-100/40 blur-3xl" />
       </div>
 
-      <div className="max-w-lg mx-auto px-5 pt-8 relative space-y-6">
+      <div className="max-w-lg mx-auto px-4 sm:px-5 pt-6 sm:pt-8 relative space-y-5 sm:space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <p className="text-[11px] font-semibold tracking-widest uppercase text-[#8e8e93] mb-1">Social</p>
-          <h1 className="text-[28px] font-bold tracking-tight text-[#1a1a1a]">Friends</h1>
+          <h1 className="text-[24px] sm:text-[28px] font-bold tracking-tight text-[#1a1a1a]">Friends</h1>
         </motion.div>
+
+        {/* ── Leaderboard ── */}
+        {(() => {
+          const myXp = profile?.totalXp ?? 0
+          const myLevel = getLevel(myXp)
+          const entries = [
+            { uid: profile?.userId, username: profile?.username || 'You', totalXp: myXp, level: myLevel, isMe: true },
+            ...friends.map((f) => ({ uid: f.friendUid, username: f.friendUsername, totalXp: f.totalXp, level: f.level, isMe: false })),
+          ].sort((a, b) => b.totalXp - a.totalXp)
+
+          const MEDALS = ['🥇', '🥈', '🥉']
+          if (entries.length < 2) return null // only show when at least one friend exists
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.06 }}
+              className="bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] rounded-3xl p-5 shadow-[0_10px_32px_rgba(0,0,0,0.22)] text-white"
+            >
+              <p className="text-[11px] font-bold tracking-widest uppercase text-white/60 mb-3">⚡ XP Leaderboard</p>
+              <div className="space-y-2">
+                {entries.map((e, i) => {
+                  const maxXp = entries[0].totalXp || 1
+                  const pct = Math.min(100, Math.round((e.totalXp / maxXp) * 100))
+                  return (
+                    <motion.div
+                      key={e.uid || e.username}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 + i * 0.06 }}
+                      className={`flex items-center gap-3 p-3 rounded-2xl ${e.isMe ? 'bg-white/15 ring-1 ring-white/30' : 'bg-white/8'}`}
+                    >
+                      <span className="text-[20px] w-7 text-center flex-shrink-0">
+                        {i < 3 ? MEDALS[i] : <span className="text-[13px] text-white/50 font-bold">#{i + 1}</span>}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <p className={`text-[13px] font-bold truncate ${e.isMe ? 'text-white' : 'text-white/90'}`}>
+                            {e.username}{e.isMe ? ' (you)' : ''}
+                          </p>
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-white/15 text-white/80 flex-shrink-0">
+                            Lv {e.level}
+                          </span>
+                        </div>
+                        <div className="h-1.5 bg-white/15 rounded-full overflow-hidden">
+                          <motion.div
+                            className={`h-full rounded-full ${e.isMe ? 'bg-white' : 'bg-white/60'}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 + i * 0.06 }}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-[14px] font-bold text-white flex-shrink-0">
+                        {e.totalXp.toLocaleString()}
+                        <span className="text-[10px] font-medium text-white/60 ml-0.5">xp</span>
+                      </p>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )
+        })()}
 
         {/* Search */}
         <motion.div
@@ -302,7 +367,7 @@ export default function FriendsScreen({ profile }) {
           <p className="text-[11px] font-semibold tracking-widest uppercase text-[#8e8e93] mb-3">
             Add a friend
           </p>
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <form onSubmit={handleSearch} className="flex gap-2.5">
             <input
               type="text"
               value={searchQuery}
@@ -314,14 +379,14 @@ export default function FriendsScreen({ profile }) {
               placeholder="Search by username…"
               maxLength={32}
               disabled={searching}
-              className="flex-1 px-4 py-3 rounded-2xl text-[14px] bg-[#f5f5f7] outline-none text-[#1a1a1a] placeholder-[#aeaeb2] disabled:opacity-50"
+              className="flex-1 min-h-[46px] px-4 py-3 rounded-2xl text-[14px] bg-[#f5f5f7] outline-none text-[#1a1a1a] placeholder-[#aeaeb2] disabled:opacity-50"
             />
             <motion.button
               type="submit"
               disabled={!searchQuery.trim() || searching}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
-              className="px-4 py-3 rounded-2xl text-[13px] font-semibold text-white bg-[#5856D6] hover:bg-[#4644c4] disabled:opacity-30 transition-all"
+              className="px-4 min-h-[46px] py-3 rounded-2xl text-[13px] font-semibold text-white bg-[#5856D6] hover:bg-[#4644c4] disabled:opacity-30 transition-all"
             >
               {searching ? '…' : 'Find'}
             </motion.button>

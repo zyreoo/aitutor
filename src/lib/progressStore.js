@@ -65,6 +65,9 @@ const DEFAULTS = {
   lastXpEarned: 0,
   // Per-subject XP totals  e.g. { Mathematics: 90, Physics: 45 }
   subjectXp: {},
+  // Completed topics by class+subject key:
+  // e.g. { "Class 5|Mathematics": ["Fractions", "Decimals"] }
+  completedTopics: {},
 }
 
 function todayKey() {
@@ -89,7 +92,12 @@ function readRaw(userId) {
     const stored = window.localStorage.getItem(getStorageKey(userId))
     if (!stored) return { ...DEFAULTS }
     const parsed = JSON.parse(stored)
-    return { ...DEFAULTS, ...parsed, subjectXp: { ...(parsed.subjectXp || {}) } }
+    return {
+      ...DEFAULTS,
+      ...parsed,
+      subjectXp: { ...(parsed.subjectXp || {}) },
+      completedTopics: { ...(parsed.completedTopics || {}) },
+    }
   } catch {
     return { ...DEFAULTS }
   }
@@ -160,6 +168,16 @@ export function addLessonProgress({
   if (selectedSubject) {
     const prev = state.subjectXp || {}
     state.subjectXp = { ...prev, [selectedSubject]: (prev[selectedSubject] || 0) + xpEarned }
+  }
+
+  // Mark topic as completed in dashboard selectors.
+  if (selectedClass && selectedSubject && selectedTopic) {
+    const key = `${selectedClass}|${selectedSubject}`
+    const prevCompleted = state.completedTopics || {}
+    const topicList = prevCompleted[key] || []
+    if (!topicList.includes(selectedTopic)) {
+      state.completedTopics = { ...prevCompleted, [key]: [...topicList, selectedTopic] }
+    }
   }
 
   writeRaw(userId, state)

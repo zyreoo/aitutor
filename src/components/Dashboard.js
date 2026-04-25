@@ -25,58 +25,70 @@ import { DAILY_GOAL_XP, getLevelProgress, getProgress } from '@/lib/progressStor
 
 const curriculum = {
   'Class 5': {
-    Mathematics: ['Fractions', 'Decimals', 'Geometry basics', 'Word problems'],
-    Science: ['Plants', 'Animals', 'The human body', 'Energy'],
-    English: ['Reading comprehension', 'Grammar basics', 'Writing short texts'],
-    History: ['Ancient civilizations', 'Local history', 'Important timelines'],
+    Mathematics: ['Fractions', 'Decimals', 'Geometry basics', 'Word problems', 'Factors and multiples', 'Basic data charts'],
+    Science: ['Plants', 'Animals', 'The human body', 'Energy', 'States of matter', 'Simple machines'],
+    English: ['Reading comprehension', 'Grammar basics', 'Writing short texts', 'Vocabulary builders', 'Story structure'],
+    History: ['Ancient civilizations', 'Local history', 'Important timelines', 'Famous explorers', 'Culture and heritage'],
+    Geography: ['Maps and symbols', 'Landforms', 'Weather basics', 'Our country regions'],
+    Civics: ['Community rules', 'Rights and responsibilities', 'Public services', 'Teamwork and leadership'],
   },
   'Class 6': {
-    Mathematics: ['Ratios', 'Percentages', 'Basic algebra', 'Angles'],
-    Science: ['Forces', 'Electricity basics', 'Ecosystems', 'Matter'],
-    English: ['Tenses', 'Vocabulary', 'Creative writing'],
-    Geography: ['Maps', 'Climate', 'Continents', 'Natural resources'],
+    Mathematics: ['Ratios', 'Percentages', 'Basic algebra', 'Angles', 'Integers', 'Perimeter and area'],
+    Science: ['Forces', 'Electricity basics', 'Ecosystems', 'Matter', 'Light and shadows', 'Food and nutrition'],
+    English: ['Tenses', 'Vocabulary', 'Creative writing', 'Paragraph writing', 'Reading fluency'],
+    Geography: ['Maps', 'Climate', 'Continents', 'Natural resources', 'Population basics'],
+    History: ['Early kingdoms', 'Trade routes', 'Historical sources', 'Revolutions intro'],
+    Civics: ['Democracy basics', 'Local government', 'Rules and laws', 'Citizenship'],
   },
   'Class 7': {
-    Mathematics: ['Linear equations', 'Geometry', 'Probability', 'Statistics'],
-    Biology: ['Cells', 'Organs', 'Human body systems'],
-    Physics: ['Motion', 'Forces', 'Energy'],
-    Chemistry: ['Atoms', 'Mixtures', 'Chemical reactions'],
-    English: ['Essay writing', 'Grammar', 'Literature'],
+    Mathematics: ['Linear equations', 'Geometry', 'Probability', 'Statistics', 'Rational numbers', 'Data interpretation'],
+    Biology: ['Cells', 'Organs', 'Human body systems', 'Nutrition', 'Plant reproduction'],
+    Physics: ['Motion', 'Forces', 'Energy', 'Simple machines', 'Heat transfer'],
+    Chemistry: ['Atoms', 'Mixtures', 'Chemical reactions', 'Acids and bases basics', 'Metals and non-metals'],
+    English: ['Essay writing', 'Grammar', 'Literature', 'Speech writing', 'Reading analysis'],
+    Geography: ['Earth structure', 'Soils', 'Natural hazards', 'Resource management'],
+    History: ['Medieval societies', 'Empires', 'Social changes', 'Key inventions'],
   },
   'Class 8': {
-    Mathematics: ['Functions', 'Systems of equations', 'Geometry', 'Exam practice'],
-    Biology: ['Genetics basics', 'Ecosystems', 'Health education'],
-    Physics: ['Pressure', 'Electric circuits', 'Work and power'],
-    Chemistry: ['Acids and bases', 'Periodic table', 'Reactions'],
-    English: ['Argumentative writing', 'Reading', 'Grammar'],
+    Mathematics: ['Functions', 'Systems of equations', 'Geometry', 'Exam practice', 'Exponents', 'Surface area and volume'],
+    Biology: ['Genetics basics', 'Ecosystems', 'Health education', 'Microorganisms', 'Adaptation'],
+    Physics: ['Pressure', 'Electric circuits', 'Work and power', 'Sound', 'Reflection and refraction'],
+    Chemistry: ['Acids and bases', 'Periodic table', 'Reactions', 'Chemical equations', 'Combustion'],
+    English: ['Argumentative writing', 'Reading', 'Grammar', 'Debate skills', 'Poetry analysis'],
+    Geography: ['Agriculture', 'Industry', 'Human settlements', 'Disaster management'],
+    Civics: ['Constitution basics', 'Parliament', 'Judiciary intro', 'Fundamental rights'],
   },
   'Class 9': {
-    Mathematics: ['Algebra', 'Functions', 'Trigonometry basics', 'Geometry'],
-    Physics: ['Kinematics', 'Dynamics', 'Energy', 'Waves'],
-    Chemistry: ['Atomic structure', 'Chemical bonds', 'Stoichiometry'],
-    Biology: ['Cell biology', 'Genetics', 'Ecology'],
-    'Computer Science': ['Algorithms', 'Variables', 'Conditionals', 'Loops'],
+    Mathematics: ['Algebra', 'Functions', 'Trigonometry basics', 'Geometry', 'Coordinate geometry', 'Polynomials'],
+    Physics: ['Kinematics', 'Dynamics', 'Energy', 'Waves', 'Gravitation', 'Work and power'],
+    Chemistry: ['Atomic structure', 'Chemical bonds', 'Stoichiometry', 'Carbon compounds', 'Periodic trends'],
+    Biology: ['Cell biology', 'Genetics', 'Ecology', 'Tissues', 'Disease and immunity'],
+    'Computer Science': ['Algorithms', 'Variables', 'Conditionals', 'Loops', 'Arrays', 'Debugging basics'],
+    Economics: ['Demand and supply', 'Markets', 'Money and banking', 'Budget basics'],
   },
   'Class 10': {
-    Mathematics: ['Quadratic functions', 'Trigonometry', 'Vectors', 'Probability'],
-    Physics: ['Mechanics', 'Electricity', 'Optics'],
-    Chemistry: ['Organic chemistry basics', 'Solutions', 'Chemical equilibrium'],
-    Biology: ['Anatomy', 'Physiology', 'Evolution'],
-    'Computer Science': ['Arrays', 'Functions', 'Problem solving'],
+    Mathematics: ['Quadratic functions', 'Trigonometry', 'Vectors', 'Probability', 'Circles', 'Arithmetic progressions'],
+    Physics: ['Mechanics', 'Electricity', 'Optics', 'Magnetism', 'Modern physics intro'],
+    Chemistry: ['Organic chemistry basics', 'Solutions', 'Chemical equilibrium', 'Metallurgy', 'Environmental chemistry'],
+    Biology: ['Anatomy', 'Physiology', 'Evolution', 'Control and coordination', 'Reproduction'],
+    'Computer Science': ['Arrays', 'Functions', 'Problem solving', 'Strings', 'Time complexity intro'],
+    Economics: ['National income', 'Development indicators', 'Globalization', 'Public finance'],
   },
   'Class 11': {
-    Mathematics: ['Limits', 'Derivatives', 'Advanced functions'],
-    Physics: ['Electric fields', 'Magnetism', 'Thermodynamics'],
-    Chemistry: ['Organic compounds', 'Reaction mechanisms'],
-    Biology: ['Genetics', 'Nervous system', 'Immunity'],
-    'Computer Science': ['Data structures', 'Recursion', 'OOP basics'],
+    Mathematics: ['Limits', 'Derivatives', 'Advanced functions', 'Permutations and combinations', 'Conic sections', 'Sequences and series'],
+    Physics: ['Electric fields', 'Magnetism', 'Thermodynamics', 'Oscillations', 'Properties of matter'],
+    Chemistry: ['Organic compounds', 'Reaction mechanisms', 'Chemical kinetics', 'Coordination chemistry', 'Thermochemistry'],
+    Biology: ['Genetics', 'Nervous system', 'Immunity', 'Plant physiology', 'Biotechnology basics'],
+    'Computer Science': ['Data structures', 'Recursion', 'OOP basics', 'File handling', 'Sorting and searching'],
+    Economics: ['Microeconomics', 'Producer behavior', 'Cost and revenue', 'Market structures'],
   },
   'Class 12': {
-    Mathematics: ['Integrals', 'Exam preparation', 'Complex problems'],
-    Physics: ['Modern physics', 'Electromagnetism', 'Exam practice'],
-    Chemistry: ['Advanced organic chemistry', 'Exam practice'],
-    Biology: ['Human biology', 'Ecology', 'Exam practice'],
-    'Computer Science': ['Algorithms', 'Dynamic programming', 'Exam practice'],
+    Mathematics: ['Integrals', 'Exam preparation', 'Complex problems', 'Differential equations', 'Linear programming', 'Probability distributions'],
+    Physics: ['Modern physics', 'Electromagnetism', 'Exam practice', 'Semiconductors', 'Communication systems'],
+    Chemistry: ['Advanced organic chemistry', 'Exam practice', 'Electrochemistry', 'Polymers', 'Biomolecules'],
+    Biology: ['Human biology', 'Ecology', 'Exam practice', 'Molecular genetics', 'Evolution patterns'],
+    'Computer Science': ['Algorithms', 'Dynamic programming', 'Exam practice', 'Graphs', 'SQL basics', 'System design basics'],
+    Economics: ['Macroeconomics', 'Money markets', 'Fiscal policy', 'Balance of payments', 'Economic reforms'],
   },
 }
 
@@ -110,6 +122,8 @@ const SUBJECT_EMOJI = {
   Physics: '⚡',
   Chemistry: '⚗️',
   'Computer Science': '💻',
+  Civics: '🏛️',
+  Economics: '📊',
 }
 
 // ─── Shared animation variants ─────────────────────────────────────────────────
@@ -202,7 +216,7 @@ function SubjectSelector({ subjects, selectedSubject, onSelect, sectionRef }) {
 
 // ─── TopicSelector ─────────────────────────────────────────────────────────────
 
-function TopicSelector({ topics, selectedTopic, onSelect, styleHint, sectionRef }) {
+function TopicSelector({ topics, selectedTopic, onSelect, styleHint, sectionRef, completedTopics = [] }) {
   return (
     <motion.section
       ref={sectionRef}
@@ -217,6 +231,7 @@ function TopicSelector({ topics, selectedTopic, onSelect, styleHint, sectionRef 
       <div className="flex flex-col gap-2.5">
         {topics.map((topic) => {
           const isSelected = selectedTopic === topic
+          const isCompleted = completedTopics.includes(topic)
           return (
             <motion.button
               key={topic}
@@ -232,15 +247,24 @@ function TopicSelector({ topics, selectedTopic, onSelect, styleHint, sectionRef 
               <span className={`text-[15px] font-semibold ${isSelected ? 'text-white' : 'text-[#1a1a1a]'}`}>
                 {topic}
               </span>
-              <span
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-full flex-shrink-0 ml-3 ${
-                  isSelected
-                    ? 'bg-white/20 text-white'
-                    : 'bg-[#f0f0f5] text-[#6e6e73]'
-                }`}
-              >
-                {styleHint}
-              </span>
+              <div className="flex items-center gap-2.5 flex-shrink-0 ml-3">
+                {isCompleted && (
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-[#e8f8ef] text-[#1d7a40]'
+                  }`}>
+                    ✓ Done
+                  </span>
+                )}
+                <span
+                  className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
+                    isSelected
+                      ? 'bg-white/20 text-white'
+                      : 'bg-[#f0f0f5] text-[#6e6e73]'
+                  }`}
+                >
+                  {styleHint}
+                </span>
+              </div>
             </motion.button>
           )
         })}
@@ -667,7 +691,23 @@ export default function Dashboard({ profile, onLogout }) {
   const [progress, setProgress] = useState(() => getProgress(profile?.userId))
 
   // Active tab: 'learn' | 'friends' | 'history'
-  const [tab, setTab] = useState('learn')
+  // Seed from URL on first render so /friends and /history deep-links work.
+  const [tab, setTab] = useState(() => {
+    if (typeof window === 'undefined') return 'learn'
+    const p = window.location.pathname
+    if (p.startsWith('/friends')) return 'friends'
+    if (p.startsWith('/history')) return 'history'
+    return 'learn'
+  })
+
+  // Keep URL in sync with the active tab.
+  useEffect(() => {
+    const paths = { learn: '/dashboard', friends: '/friends', history: '/history' }
+    const target = paths[tab] || '/dashboard'
+    if (window.location.pathname !== target) {
+      window.history.pushState(null, '', target)
+    }
+  }, [tab])
 
   // Friend activity feed (best-effort: silently empty if Firestore is not reachable).
   const [activities, setActivities] = useState([])
@@ -681,21 +721,26 @@ export default function Dashboard({ profile, onLogout }) {
 
   const recommendation = buildRecommendation(progress, profile)
 
-  // Load recent activity feed once on mount.
+  // Load recent activity feed once on mount — excludes the current user's own entries.
   useEffect(() => {
     if (!db) {
       setActivities([])
       setActivitiesLoading(false)
       return
     }
+    const myUid = profile?.userId || profile?.username || null
     let cancelled = false
     ;(async () => {
       try {
+        // Fetch more than 5 so we still have 5 after filtering ourselves out.
         const snap = await getDocs(
-          query(collection(db, 'activities'), orderBy('createdAt', 'desc'), limit(5)),
+          query(collection(db, 'activities'), orderBy('createdAt', 'desc'), limit(20)),
         )
         if (cancelled) return
-        const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        const items = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((a) => !myUid || a.uid !== myUid)
+          .slice(0, 5)
         setActivities(items)
       } catch (err) {
         console.warn('activities Firestore load skipped:', err.message)
@@ -707,7 +752,8 @@ export default function Dashboard({ profile, onLogout }) {
     return () => {
       cancelled = true
     }
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.userId])
 
   // Count pending incoming friend requests for the badge.
   useEffect(() => {
@@ -888,7 +934,7 @@ export default function Dashboard({ profile, onLogout }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="min-h-screen bg-[#f5f5f7] pb-32"
+            className="min-h-screen bg-[#f5f5f7] pb-[calc(7rem+env(safe-area-inset-bottom))]"
           >
             {/* Background decoration blobs */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -897,25 +943,25 @@ export default function Dashboard({ profile, onLogout }) {
             </div>
 
             {/* Sticky header */}
-            <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-[#e8e8ed] px-5 py-4">
-              <div className="max-w-lg mx-auto flex items-center gap-3">
+            <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-[#e8e8ed] px-4 sm:px-5 py-3.5">
+              <div className="max-w-lg mx-auto flex items-center gap-2.5 sm:gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center text-white text-[15px] font-bold shadow-sm flex-shrink-0">
                   {avatarLetter}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-semibold text-[#1a1a1a] truncate">Welcome back, {profile?.username}</p>
-                  <p className="text-[12px] text-[#8e8e93]">Let&apos;s choose what you want to learn today.</p>
+                  <p className="text-[14px] sm:text-[15px] font-semibold text-[#1a1a1a] truncate">Welcome back, {profile?.username}</p>
+                  <p className="text-[11px] sm:text-[12px] text-[#8e8e93] truncate">Let&apos;s choose what you want to learn today.</p>
                 </div>
                 <button
                   onClick={onLogout}
-                  className="text-[13px] text-[#8e8e93] hover:text-[#1a1a1a] transition-colors px-3 py-1.5 rounded-xl hover:bg-[#f0f0f5] flex-shrink-0"
+                  className="text-[12px] sm:text-[13px] text-[#8e8e93] hover:text-[#1a1a1a] transition-colors px-3 py-2 rounded-xl hover:bg-[#f0f0f5] flex-shrink-0"
                 >
                   Logout
                 </button>
               </div>
             </div>
 
-            <div className="max-w-lg mx-auto px-5 pt-6 space-y-8 relative">
+            <div className="max-w-lg mx-auto px-4 sm:px-5 pt-5 sm:pt-6 space-y-6 sm:space-y-8 relative">
               {/* Learner type badge */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
@@ -951,17 +997,17 @@ export default function Dashboard({ profile, onLogout }) {
                     className="space-y-3"
                   >
                     {/* Level card */}
-                    <div className="bg-gradient-to-br from-[#5856D6] via-[#7c6cff] to-[#a78bfa] rounded-3xl p-5 shadow-[0_8px_28px_rgba(88,86,214,0.3)] text-white">
-                      <div className="flex items-start justify-between mb-4">
+                    <div className="bg-gradient-to-br from-[#5856D6] via-[#7c6cff] to-[#a78bfa] rounded-3xl p-4 sm:p-5 shadow-[0_8px_28px_rgba(88,86,214,0.3)] text-white">
+                      <div className="flex items-start justify-between gap-3 mb-4">
                         <div>
                           <p className="text-[11px] font-bold tracking-widest uppercase text-white/70">Your level</p>
-                          <p className="text-[42px] font-bold tracking-tight leading-none mt-1">{lvlProg.level}</p>
+                          <p className="text-[36px] sm:text-[42px] font-bold tracking-tight leading-none mt-1">{lvlProg.level}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5 mt-1">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 text-[12px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 text-[11px] sm:text-[12px] font-bold whitespace-nowrap">
                             🔥 {progress.streak} day streak
                           </span>
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 text-[12px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 text-[11px] sm:text-[12px] font-bold whitespace-nowrap">
                             ⚡ {progress.totalXp} total XP
                           </span>
                         </div>
@@ -969,9 +1015,9 @@ export default function Dashboard({ profile, onLogout }) {
 
                       {/* XP to next level bar */}
                       <div className="mb-1.5">
-                        <div className="flex justify-between text-[11px] font-semibold text-white/80 mb-1.5">
+                        <div className="flex justify-between gap-2 text-[10px] sm:text-[11px] font-semibold text-white/80 mb-1.5">
                           <span>{lvlProg.currentLevelXp} XP</span>
-                          <span>{lvlProg.xpNeeded - lvlProg.currentLevelXp} XP to Level {lvlProg.level + 1}</span>
+                          <span className="text-right">{lvlProg.xpNeeded - lvlProg.currentLevelXp} XP to Level {lvlProg.level + 1}</span>
                         </div>
                         <div className="h-2.5 bg-white/20 rounded-full overflow-hidden">
                           <motion.div
@@ -1100,6 +1146,7 @@ export default function Dashboard({ profile, onLogout }) {
                     selectedTopic={selectedTopic}
                     onSelect={handleSelectTopic}
                     styleHint={styleHint}
+                    completedTopics={progress.completedTopics?.[`${selectedClass}|${selectedSubject}`] || []}
                     sectionRef={topicSectionRef}
                   />
                 )}
@@ -1109,7 +1156,7 @@ export default function Dashboard({ profile, onLogout }) {
         )}
 
         {tab === 'friends' && (
-          <FriendsScreen key="friends" profile={profile} />
+          <FriendsScreen key="friends" profile={{ ...profile, totalXp: progress.totalXp || 0 }} />
         )}
 
         {tab === 'history' && (

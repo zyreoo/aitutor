@@ -46,7 +46,7 @@ function ArrowLeftIcon() {
 
 // ─── Top status bar (always visible during lesson) ─────────────────────────────
 
-function StatusBar({ currentXp, totalXp, totalOverallXp, streak, onBack, xpPulseKey }) {
+function StatusBar({ currentXp, totalXp, totalOverallXp, streak, onBack, xpPulseKey, xpShakeKey }) {
   const levelProg = getLevelProgress(totalOverallXp || 0)
 
   return (
@@ -85,14 +85,24 @@ function StatusBar({ currentXp, totalXp, totalOverallXp, streak, onBack, xpPulse
           </div>
 
           <motion.div
-            key={`xp-pill-${xpPulseKey || 0}`}
-            initial={{ scale: 1 }}
-            animate={{ scale: xpPulseKey ? [1, 1.12, 1] : 1 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#e8f4ff] to-[#ede8ff] flex-shrink-0"
+            key={`xp-pill-${xpPulseKey || 0}-${xpShakeKey || 0}`}
+            initial={{ scale: 1, x: 0 }}
+            animate={
+              xpShakeKey
+                ? { x: [0, -6, 6, -5, 5, -3, 3, 0], scale: [1, 0.95, 1] }
+                : xpPulseKey
+                ? { scale: [1, 1.12, 1] }
+                : { scale: 1, x: 0 }
+            }
+            transition={{ duration: xpShakeKey ? 0.4 : 0.45, ease: 'easeOut' }}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 transition-colors duration-300 ${
+              xpShakeKey
+                ? 'bg-gradient-to-r from-[#fff0f0] to-[#ffe5e5]'
+                : 'bg-gradient-to-r from-[#e8f4ff] to-[#ede8ff]'
+            }`}
           >
-            <span className="text-[12px]">⚡</span>
-            <span className="text-[12px] font-bold text-[#5856D6]">
+            <span className="text-[12px]">{xpShakeKey ? '💔' : '⚡'}</span>
+            <span className={`text-[12px] font-bold ${xpShakeKey ? 'text-[#ff3b30]' : 'text-[#5856D6]'}`}>
               <AnimatedNumber value={currentXp} duration={650} />/{totalXp}
             </span>
           </motion.div>
@@ -102,7 +112,10 @@ function StatusBar({ currentXp, totalXp, totalOverallXp, streak, onBack, xpPulse
   )
 }
 
-// ─── Floating "+10 XP" toast ───────────────────────────────────────────────────
+// XP deducted per wrong answer
+const WRONG_PENALTY = 5
+
+// ─── Floating "+10 XP" / "-5 XP" toasts ───────────────────────────────────────
 
 function XpToast({ amount, id }) {
   return (
@@ -118,6 +131,28 @@ function XpToast({ amount, id }) {
         >
           <span className="px-4 py-2 rounded-full bg-gradient-to-r from-[#34c759] to-[#30b454] text-white text-[14px] font-bold shadow-[0_8px_24px_rgba(52,199,89,0.35)]">
             +{amount} XP
+          </span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// Penalty toast: show=true triggers entry, show=false triggers exit.
+function XpPenaltyToast({ show, id }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          key={`xp-penalty-${id}`}
+          initial={{ opacity: 0, y: 0, scale: 0.85 }}
+          animate={{ opacity: 1, y: -50, scale: 1 }}
+          exit={{ opacity: 0, y: -80, scale: 0.9 }}
+          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+          className="pointer-events-none fixed top-20 left-1/2 -translate-x-1/2 z-50"
+        >
+          <span className="px-4 py-2 rounded-full bg-gradient-to-r from-[#ff3b30] to-[#ff6b35] text-white text-[14px] font-bold shadow-[0_8px_24px_rgba(255,59,48,0.4)]">
+            -{WRONG_PENALTY} XP
           </span>
         </motion.div>
       )}
@@ -198,6 +233,14 @@ function QuestionBlock({
   // Live AI re-explanation state
   const [reExplain, setReExplain] = useState(null) // string | null
   const [reExplainLoading, setReExplainLoading] = useState(false)
+  const shuffledOptions = useMemo(() => {
+    const opts = Array.isArray(question?.options) ? [...question.options] : []
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[opts[i], opts[j]] = [opts[j], opts[i]]
+    }
+    return opts
+  }, [question?.text, question?.options])
 
   async function handleStillDontGetIt() {
     if (reExplainLoading || !tutorContext) return
@@ -252,7 +295,7 @@ function QuestionBlock({
       <p className="text-[16px] font-semibold text-[#1a1a1a] leading-snug mb-4">{question.text}</p>
 
       <div className="flex flex-col gap-2.5">
-        {question.options?.map((option) => {
+        {shuffledOptions.map((option) => {
           const isSelected = selected === option
           const isRight = option === question.correct_answer
 
@@ -977,6 +1020,8 @@ export default function LessonView({
 
   // Floating "+10 XP" toast state — re-fires on every gain.
   const [xpToast, setXpToast] = useState({ amount: 0, id: 0 })
+  const [penaltyToast, setPenaltyToast] = useState({ show: false, id: 0 })
+  const [xpShakeKey, setXpShakeKey] = useState(0)
   const [confettiKey, setConfettiKey] = useState(0)
   const [levelUpInfo, setLevelUpInfo] = useState(null) // { newLevel, oldLevel } when a level-up occurs
 
@@ -1017,6 +1062,12 @@ export default function LessonView({
 
   function handleWrong() {
     setWrongAnswers((w) => w + 1)
+    // Deduct XP — floor at 0 so it never goes negative.
+    setCurrentXp((prev) => Math.max(0, prev - WRONG_PENALTY))
+    // Show penalty toast then auto-dismiss after animation completes.
+    setPenaltyToast((prev) => ({ show: true, id: prev.id + 1 }))
+    setTimeout(() => setPenaltyToast((prev) => ({ ...prev, show: false })), 900)
+    setXpShakeKey((k) => k + 1)
   }
 
   function handleChallengeCorrect(xp) {
@@ -1153,7 +1204,7 @@ export default function LessonView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="min-h-screen bg-[#f5f5f7] pb-20"
+      className="min-h-screen bg-[#f5f5f7] pb-[calc(6.5rem+env(safe-area-inset-bottom))]"
     >
       {/* Background blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -1164,19 +1215,22 @@ export default function LessonView({
       <StatusBar
         currentXp={currentXp}
         totalXp={totalXp}
-        totalOverallXp={progress.totalXp}
+        totalOverallXp={(progress.totalXp || 0) + currentXp}
         streak={progress.streak}
         onBack={onBack}
         xpPulseKey={xpToast.id}
+        xpShakeKey={xpShakeKey}
       />
 
       {/* Floating "+XP" toast — fires on every gain */}
       <XpToast amount={xpToast.amount} id={xpToast.id} />
+      {/* Floating "−5 XP" penalty toast — auto-dismisses */}
+      <XpPenaltyToast show={penaltyToast.show} id={penaltyToast.id} />
 
       {/* Confetti — fires once on lesson completion */}
       {confettiKey > 0 && <Confetti key={confettiKey} active />}
 
-      <div className="max-w-lg mx-auto px-5 pt-5 relative space-y-4">
+      <div className="max-w-lg mx-auto px-4 sm:px-5 pt-4 sm:pt-5 relative space-y-4">
         {/* Title + intro — only shown during the active lesson */}
         {phase === 'lesson' && (
           <motion.div
@@ -1184,7 +1238,7 @@ export default function LessonView({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <h1 className="text-[24px] font-bold tracking-tight text-[#1a1a1a] leading-tight mb-1">
+            <h1 className="text-[22px] sm:text-[24px] font-bold tracking-tight text-[#1a1a1a] leading-tight mb-1">
               {lesson.title}
             </h1>
             <p className="text-[13px] text-[#6e6e73]">

@@ -91,8 +91,8 @@ const TABS = [
 
 export default function BottomNav({ activeTab, onChange, friendBadge = 0 }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/92 backdrop-blur-xl border-t border-[#e8e8ed]">
-      <div className="max-w-lg mx-auto flex items-center justify-around px-4 py-2">
+    <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/94 backdrop-blur-xl border-t border-[#e8e8ed] shadow-[0_-6px_20px_rgba(0,0,0,0.05)]">
+      <div className="max-w-lg mx-auto grid grid-cols-3 items-center gap-1 px-3 sm:px-4 py-1.5">
         {TABS.map(({ id, label, Icon }) => {
           const isActive = activeTab === id
           const showBadge = id === 'friends' && friendBadge > 0
@@ -102,7 +102,7 @@ export default function BottomNav({ activeTab, onChange, friendBadge = 0 }) {
               key={id}
               onClick={() => onChange(id)}
               whileTap={{ scale: 0.88 }}
-              className="relative flex flex-col items-center gap-1 py-1.5 px-6 rounded-2xl"
+              className="relative flex flex-col items-center justify-center gap-1 min-h-[50px] py-2 px-2 sm:px-4 rounded-2xl"
             >
               {/* Active pill background */}
               {isActive && (
@@ -134,7 +134,7 @@ export default function BottomNav({ activeTab, onChange, friendBadge = 0 }) {
         })}
       </div>
       {/* iOS safe-area spacer */}
-      <div className="h-[env(safe-area-inset-bottom,0px)]" />
+      <div className="h-[max(env(safe-area-inset-bottom),6px)]" />
     </div>
   )
 }
