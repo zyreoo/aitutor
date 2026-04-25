@@ -147,16 +147,16 @@ export default function OnboardingChat({ username, onComplete }) {
       className="min-h-screen flex flex-col bg-[#f5f5f7]"
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-[#e8e8ed] px-5 py-4 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center text-white text-xs font-semibold shadow-sm">
+      <div className="sticky top-0 z-10 bg-white/85 backdrop-blur-xl border-b border-[#e8e8ed] px-4 sm:px-5 py-3.5 flex items-center gap-2.5 sm:gap-3">
+        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center text-white text-[11px] sm:text-xs font-semibold shadow-sm flex-shrink-0">
           AI
         </div>
-        <div>
-          <p className="text-[14px] font-semibold text-[#1a1a1a]">Learning Guide</p>
-          <p className="text-[11px] text-[#8e8e93]">AI is learning about you...</p>
+        <div className="min-w-0">
+          <p className="text-[13px] sm:text-[14px] font-semibold text-[#1a1a1a] truncate">Learning Guide</p>
+          <p className="text-[10px] sm:text-[11px] text-[#8e8e93] truncate">AI is learning about you...</p>
         </div>
         <div className="ml-auto">
-          <div className="text-[12px] text-[#8e8e93] bg-[#f0f0f5] px-2.5 py-1 rounded-full">
+          <div className="text-[11px] sm:text-[12px] text-[#8e8e93] bg-[#f0f0f5] px-2.5 py-1 rounded-full whitespace-nowrap">
             Q{Math.max(1, questionCount)} · {getAdaptiveProgressLabel(profilingState.completeness)}
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function OnboardingChat({ username, onComplete }) {
       </div>
 
       {/* Chat messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-0">
+      <div className="flex-1 overflow-y-auto px-3.5 sm:px-4 py-4 sm:py-5 space-y-0">
         <AnimatePresence initial={false}>
           {messages.map((msg, i) => (
             <ChatBubble key={i} message={msg.text} isUser={msg.role === 'user'} />
@@ -187,7 +187,7 @@ export default function OnboardingChat({ username, onComplete }) {
       </div>
 
       {/* Input */}
-      <div className="sticky bottom-0 bg-white/90 backdrop-blur-xl border-t border-[#e8e8ed] px-4 py-3 pb-safe">
+      <div className="sticky bottom-0 bg-white/92 backdrop-blur-xl border-t border-[#e8e8ed] px-3.5 sm:px-4 pt-2.5 pb-[max(env(safe-area-inset-bottom),12px)]">
         <form onSubmit={handleSend} className="flex items-center gap-2">
           <input
             ref={inputRef}
@@ -197,12 +197,12 @@ export default function OnboardingChat({ username, onComplete }) {
             placeholder="Type your answer…"
             disabled={inputLocked}
             maxLength={300}
-            className="flex-1 px-4 py-2.5 rounded-full text-[14px] bg-[#f2f2f7] outline-none text-[#1a1a1a] placeholder-[#aeaeb2] disabled:opacity-50 transition-opacity"
+            className="flex-1 min-h-[44px] px-4 py-2.5 rounded-full text-[14px] bg-[#f2f2f7] outline-none text-[#1a1a1a] placeholder-[#aeaeb2] disabled:opacity-50 transition-opacity"
           />
           <button
             type="submit"
             disabled={!currentAnswer.trim() || inputLocked}
-            className="w-9 h-9 rounded-full bg-[#007AFF] flex items-center justify-center text-white disabled:opacity-30 active:scale-95 transition-all flex-shrink-0"
+            className="w-11 h-11 rounded-full bg-[#007AFF] flex items-center justify-center text-white disabled:opacity-30 active:scale-95 transition-all flex-shrink-0 shadow-[0_4px_12px_rgba(0,122,255,0.25)]"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
