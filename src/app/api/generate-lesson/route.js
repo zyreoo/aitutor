@@ -226,6 +226,32 @@ function fallbackLesson(selectedTopic, selectedSubject, profile) {
   }
 }
 
+// Ensure correct_answer exactly matches one of the option strings (case-insensitive
+// trim fallback) so the client-side === comparison never silently fails.
+function normalizeQuestion(q) {
+  if (!q || !Array.isArray(q.options)) return q
+  const cleanOpts = q.options.map((o) => String(o || '').trim())
+  const rawCorrect = String(q.correct_answer || '').trim()
+  const correct =
+    cleanOpts.find((o) => o === rawCorrect) ||
+    cleanOpts.find((o) => o.toLowerCase() === rawCorrect.toLowerCase()) ||
+    cleanOpts[0]
+  return { ...q, options: cleanOpts, correct_answer: correct }
+}
+
+function normalizeLesson(lesson) {
+  if (!lesson) return lesson
+  const steps = Array.isArray(lesson.steps)
+    ? lesson.steps.map((s) => ({ ...s, question: normalizeQuestion(s.question) }))
+    : lesson.steps
+  const cm = lesson.challenge_mode
+  const challenge_mode =
+    cm && Array.isArray(cm.questions)
+      ? { ...cm, questions: cm.questions.map(normalizeQuestion) }
+      : cm
+  return { ...lesson, steps, challenge_mode }
+}
+
 export async function POST(request) {
   let parsedBody = {}
   let timeoutId = null
@@ -318,6 +344,9 @@ export async function POST(request) {
       console.warn('AI lesson missing steps — using fallback.')
       lesson = fallbackLesson(selectedTopic, selectedSubject, profile)
     }
+
+    // Normalize correct_answer to exactly match one of the option strings.
+    lesson = normalizeLesson(lesson)
 
     return NextResponse.json({ lesson })
   } catch (err) {

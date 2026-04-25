@@ -212,6 +212,11 @@ function AdaptiveFeedback({ value, onChoose }) {
   )
 }
 
+// Case-insensitive trimmed equality for answer matching (guards against AI whitespace/case mismatches)
+function eqOpt(a, b) {
+  return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase()
+}
+
 // ─── A single multiple-choice question (used by both steps & challenge) ────────
 
 function QuestionBlock({
@@ -299,11 +304,11 @@ function QuestionBlock({
   }
 
   function handlePick(option) {
-    if (hasAnswered && selected === question.correct_answer) return
+    if (hasAnswered && eqOpt(selected, question.correct_answer)) return
     setSelected(option)
     setHasAnswered(true)
 
-    const isCorrect = option === question.correct_answer
+    const isCorrect = eqOpt(option, question.correct_answer)
     if (isCorrect && !hasScored) {
       setHasScored(true)
       onCorrect?.(question.xp || 0)
@@ -318,7 +323,7 @@ function QuestionBlock({
     setShowSimpler(false)
   }
 
-  const isCorrect = hasAnswered && selected === question.correct_answer
+  const isCorrect = hasAnswered && eqOpt(selected, question.correct_answer)
 
   return (
     <div>
@@ -326,8 +331,8 @@ function QuestionBlock({
 
       <div className="flex flex-col gap-2.5">
         {shuffledOptions.map((option) => {
-          const isSelected = selected === option
-          const isRight = option === question.correct_answer
+          const isSelected = eqOpt(selected, option)
+          const isRight = eqOpt(option, question.correct_answer)
 
           let cls = 'bg-[#f5f5f7] text-[#1a1a1a] border-2 border-transparent hover:bg-[#ebebf0]'
           if (hasAnswered) {
