@@ -16,25 +16,22 @@ export async function POST(request) {
       )
     }
 
-    const existingQuery = query(
+    const existingUserQuery = query(
       collection(db, 'users'),
       where('username', '==', username),
       limit(1),
     )
-    const existingSnapshot = await getDocs(existingQuery)
+    const existingUserSnapshot = await getDocs(existingUserQuery)
 
-    if (!existingSnapshot.empty) {
-      const existingUser = existingSnapshot.docs[0].data()
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        existingUser.passwordHash,
-      )
+    if (!existingUserSnapshot.empty) {
+      const existingUser = existingUserSnapshot.docs[0].data()
+      const isValidPassword = await bcrypt.compare(password, existingUser.passwordHash)
 
-      if (!isPasswordValid) {
-        return NextResponse.json({ error: 'Incorrect password' }, { status: 401 })
+      if (!isValidPassword) {
+        return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
       }
 
-      return NextResponse.json({ userExists: true })
+      return NextResponse.json({ ok: true, userExists: true, username })
     }
 
     const passwordHash = await bcrypt.hash(password, 10)
@@ -44,8 +41,11 @@ export async function POST(request) {
       createdAt: new Date(),
     })
 
-    return NextResponse.json({ userExists: false })
+    return NextResponse.json({ ok: true, userExists: false, username })
   } catch (error) {
-    return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Unable to authenticate user' },
+      { status: 500 },
+    )
   }
 }

@@ -13,6 +13,7 @@ export default function LoginScreen({ onContinue, isChecking }) {
   useEffect(() => {
     const trimmed = username.trim()
 
+
     if (!trimmed) return
 
     const controller = new AbortController()
