@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 
 export default function LoginScreen({ onContinue, isChecking }) {
@@ -8,39 +8,8 @@ export default function LoginScreen({ onContinue, isChecking }) {
   const [password, setPassword] = useState('')
   const [focused, setFocused] = useState(false)
   const [usernameStatus, setUsernameStatus] = useState('idle')
+  const [hasCheckedUsername, setHasCheckedUsername] = useState(false)
   const [submitError, setSubmitError] = useState('')
-
-  useEffect(() => {
-    const trimmed = username.trim()
-
-
-    if (!trimmed) return
-
-    const controller = new AbortController()
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `/api/check-username?username=${encodeURIComponent(trimmed)}`,
-          { signal: controller.signal },
-        )
-        if (!res.ok) {
-          setUsernameStatus('error')
-          return
-        }
-        const data = await res.json()
-        setUsernameStatus(data.exists ? 'exists' : 'available')
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          setUsernameStatus('error')
-        }
-      }
-    }, 400)
-
-    return () => {
-      controller.abort()
-      clearTimeout(timer)
-    }
-  }, [username])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -48,6 +17,23 @@ export default function LoginScreen({ onContinue, isChecking }) {
     if (!trimmedUsername || !password) return
 
     setSubmitError('')
+    setHasCheckedUsername(true)
+
+    try {
+      setUsernameStatus('checking')
+      const res = await fetch(
+        `/api/check-username?username=${encodeURIComponent(trimmedUsername)}`,
+      )
+      if (!res.ok) {
+        setUsernameStatus('error')
+      } else {
+        const data = await res.json()
+        setUsernameStatus(data.exists ? 'exists' : 'available')
+      }
+    } catch {
+      setUsernameStatus('error')
+    }
+
     try {
       await onContinue(trimmedUsername, password)
     } catch (error) {
@@ -118,7 +104,8 @@ export default function LoginScreen({ onContinue, isChecking }) {
               onChange={(e) => {
                 const nextUsername = e.target.value
                 setUsername(nextUsername)
-                setUsernameStatus(nextUsername.trim() ? 'checking' : 'idle')
+                setHasCheckedUsername(false)
+                setUsernameStatus('idle')
                 setSubmitError('')
               }}
               onFocus={() => setFocused(true)}
@@ -131,11 +118,14 @@ export default function LoginScreen({ onContinue, isChecking }) {
             />
           </div>
 
-          {usernameStatus === 'exists' && (
+          {hasCheckedUsername && usernameStatus === 'exists' && (
             <p className="text-[12px] text-[#b26a00] px-1">Username already exists</p>
           )}
-          {usernameStatus === 'available' && (
+          {hasCheckedUsername && usernameStatus === 'available' && (
             <p className="text-[12px] text-[#2e7d32] px-1">Username available</p>
+          )}
+          {hasCheckedUsername && usernameStatus === 'error' && (
+            <p className="text-[12px] text-[#d02f2f] px-1">Could not check username right now</p>
           )}
 
           <div className="rounded-2xl shadow-[0_1px_6px_rgba(0,0,0,0.07)] bg-white">

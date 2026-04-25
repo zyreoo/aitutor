@@ -5,25 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ChatBubble from './ChatBubble'
 import TypingIndicator from './TypingIndicator'
 import {
-  estimateRemainingQuestions,
-  getInitialQuestionId,
-  getNextQuestionId,
-  getQuestionById,
-  getQuestionPrompt,
-  getWarmReply,
-} from '@/lib/onboardingFlow'
+  createInitialProfilingState,
+  getAdaptiveProgressLabel,
+  submitProfilingAnswer,
+} from '@/lib/profilingEngine'
 
 export default function OnboardingChat({ username, onComplete }) {
   const [messages, setMessages] = useState([])
   const [currentAnswer, setCurrentAnswer] = useState('')
-  const [questionIndex, setQuestionIndex] = useState(0)
-  const [totalQuestionsEstimate, setTotalQuestionsEstimate] = useState(7)
-  const [currentQuestionId, setCurrentQuestionId] = useState(getInitialQuestionId())
   const [isTyping, setIsTyping] = useState(false)
-  const [profileDraft, setProfileDraft] = useState({
-    username,
-    responses: [],
-  })
+  const [profilingState, setProfilingState] = useState(() => createInitialProfilingState(username))
+  const [questionCount, setQuestionCount] = useState(1)
   const [inputLocked, setInputLocked] = useState(true)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
@@ -32,7 +24,10 @@ export default function OnboardingChat({ username, onComplete }) {
     let isCancelled = false
 
     const greet = async () => {
-      const initialQuestionId = getInitialQuestionId()
+      const initialState = createInitialProfilingState(username)
+      setProfilingState(initialState)
+      setQuestionCount(1)
+
       await delay(500)
       if (isCancelled) return
       setIsTyping(true)
@@ -52,13 +47,11 @@ export default function OnboardingChat({ username, onComplete }) {
       if (isCancelled) return
       setIsTyping(false)
       setMessages((prev) => {
-        const initialPrompt = getQuestionPrompt(initialQuestionId, { username, responses: [] })
+        const initialPrompt = initialState.currentQuestion?.prompt
         if (!initialPrompt) return prev
         if (prev.some((msg) => msg.role === 'ai' && msg.text === initialPrompt)) return prev
         return [...prev, { role: 'ai', text: initialPrompt }]
       })
-      const remaining = estimateRemainingQuestions(getInitialQuestionId(), { responses: [] })
-      setTotalQuestionsEstimate(remaining)
       setInputLocked(false)
     }
     greet()
@@ -93,60 +86,59 @@ export default function OnboardingChat({ username, onComplete }) {
     const userMsg = { role: 'user', text: trimmed }
     setMessages((prev) => [...prev, userMsg])
 
-    const currentQuestion = getQuestionById(currentQuestionId)
-    const askedPrompt = getQuestionPrompt(currentQuestionId, profileDraft)
-    const nextProfileDraft = {
-      ...profileDraft,
-      [currentQuestion?.key || `answer_${questionIndex}`]: trimmed,
-      responses: [
-        ...profileDraft.responses,
-        {
-          questionId: currentQuestionId,
-          question: askedPrompt || currentQuestion?.prompt || '',
-          answer: trimmed,
+    const nextState = submitProfilingAnswer(profilingState, trimmed)
+    setProfilingState(nextState)
+    setQuestionCount((prev) => prev + 1)
+
+    try {
+      await fetch('/api/profile-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      ],
+        body: JSON.stringify({
+          username,
+          profile: nextState.profile,
+          responses: nextState.responses,
+          completeness: nextState.completeness,
+          status: nextState.done ? 'completed' : 'in_progress',
+        }),
+      })
+    } catch (error) {
+      console.warn('Could not persist profiling progress:', error)
     }
-    setProfileDraft(nextProfileDraft)
 
     await delay(400)
     setIsTyping(true)
-
-    const warmReply = getWarmReply(questionIndex)
-    const nextQuestionId = getNextQuestionId(currentQuestionId, nextProfileDraft, trimmed)
-
-    if (!nextQuestionId) {
+    if (nextState.done || !nextState.currentQuestion) {
       await delay(1200)
       setIsTyping(false)
-      setMessages((prev) => [...prev, { role: 'ai', text: warmReply }])
+      setMessages((prev) => [...prev, { role: 'ai', text: 'Perfect. I have enough context to build your learning profile.' }])
       await delay(500)
       setIsTyping(true)
       await delay(900)
       setIsTyping(false)
       setMessages((prev) => [...prev, { role: 'ai', text: "Give me a second while I put together your profile…" }])
       await delay(1400)
-      onComplete(nextProfileDraft)
+      onComplete({
+        ...nextState.profile,
+        responses: nextState.responses,
+        profile_completeness: nextState.completeness,
+      })
     } else {
       await delay(1000)
       setIsTyping(false)
-      setMessages((prev) => [...prev, { role: 'ai', text: warmReply }])
+      setMessages((prev) => [...prev, { role: 'ai', text: 'AI is learning from your answer.' }])
       await delay(300)
       setIsTyping(true)
       await delay(900)
       setIsTyping(false)
-      const nextQuestion = getQuestionById(nextQuestionId)
-      if (nextQuestion) {
-        const nextPrompt = getQuestionPrompt(nextQuestionId, nextProfileDraft)
-        setMessages((prev) => {
-          if (!nextPrompt) return prev
-          if (prev.some((msg) => msg.role === 'ai' && msg.text === nextPrompt)) return prev
-          return [...prev, { role: 'ai', text: nextPrompt }]
-        })
-      }
-      const nextIndex = questionIndex + 1
-      setCurrentQuestionId(nextQuestionId)
-      setQuestionIndex(nextIndex)
-      setTotalQuestionsEstimate(nextIndex + estimateRemainingQuestions(nextQuestionId, nextProfileDraft))
+      const nextPrompt = nextState.currentQuestion.prompt
+      setMessages((prev) => {
+        if (!nextPrompt) return prev
+        if (prev.some((msg) => msg.role === 'ai' && msg.text === nextPrompt)) return prev
+        return [...prev, { role: 'ai', text: nextPrompt }]
+      })
       setInputLocked(false)
     }
   }
@@ -166,11 +158,11 @@ export default function OnboardingChat({ username, onComplete }) {
         </div>
         <div>
           <p className="text-[14px] font-semibold text-[#1a1a1a]">Learning Guide</p>
-          <p className="text-[11px] text-[#8e8e93]">Getting to know you</p>
+          <p className="text-[11px] text-[#8e8e93]">AI is learning about you...</p>
         </div>
         <div className="ml-auto">
           <div className="text-[12px] text-[#8e8e93] bg-[#f0f0f5] px-2.5 py-1 rounded-full">
-            {Math.min(questionIndex + 1, totalQuestionsEstimate)}/{totalQuestionsEstimate}
+            Q{Math.max(1, questionCount)} · {getAdaptiveProgressLabel(profilingState.completeness)}
           </div>
         </div>
       </div>
@@ -179,7 +171,7 @@ export default function OnboardingChat({ username, onComplete }) {
       <div className="h-0.5 bg-[#e8e8ed]">
         <motion.div
           className="h-full bg-gradient-to-r from-[#007AFF] to-[#5856D6]"
-          animate={{ width: `${(Math.min(questionIndex + 1, totalQuestionsEstimate) / totalQuestionsEstimate) * 100}%` }}
+          animate={{ width: `${Math.max(8, profilingState.completeness * 100)}%` }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         />
       </div>
