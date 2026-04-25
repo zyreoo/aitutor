@@ -5,14 +5,16 @@ import { AnimatePresence } from 'framer-motion'
 import LoginScreen from '@/components/LoginScreen'
 import OnboardingChat from '@/components/OnboardingChat'
 import ProfileCard from '@/components/ProfileCard'
+import Dashboard from '@/components/Dashboard'
 import { generateProfile } from '@/lib/generateProfile'
 import { db } from '@/lib/firebase'
-import { collection, addDoc, getDocs, limit, query, where } from 'firebase/firestore'
+import { addDoc, collection, getDocs, limit, query, updateDoc, doc, where } from 'firebase/firestore'
 
 const SCREENS = {
   LOGIN: 'login',
   CHAT: 'chat',
   PROFILE: 'profile',
+  DASHBOARD: 'dashboard',
 }
 
 export default function Home() {
@@ -28,13 +30,8 @@ export default function Home() {
     try {
       const authRes = await fetch('/api/auth', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: name,
-          password,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: name, password }),
       })
 
       const authData = await authRes.json()
@@ -51,13 +48,14 @@ export default function Home() {
         const existingProfileSnapshot = await getDocs(existingProfileQuery)
 
         if (!existingProfileSnapshot.empty) {
-          setProfile(existingProfileSnapshot.docs[0].data())
-          setScreen(SCREENS.PROFILE)
-        } else {
-          // Existing credentials but no completed onboarding profile yet.
-          // Continue onboarding instead of skipping directly to dashboard.
-          setScreen(SCREENS.CHAT)
+          const docSnap = existingProfileSnapshot.docs[0]
+          setProfile({ ...docSnap.data(), _docId: docSnap.id })
+          // Returning user with a finished profile → go straight to the dashboard
+          setScreen(SCREENS.DASHBOARD)
+          return
         }
+        // Existing credentials but onboarding not finished yet
+        setScreen(SCREENS.CHAT)
         return
       }
     } finally {
@@ -69,22 +67,30 @@ export default function Home() {
 
   async function handleChatComplete(onboardingData) {
     const generated = generateProfile(username, onboardingData)
-    setProfile(generated)
 
+    let docId = null
     try {
-      await addDoc(collection(db, 'learner_profiles'), {
+      const docRef = await addDoc(collection(db, 'learner_profiles'), {
         ...generated,
         createdAt: new Date(),
       })
+      docId = docRef.id
     } catch (err) {
       console.warn('Firestore save skipped (check env vars):', err.message)
     }
 
+    setProfile({ ...generated, _docId: docId })
     setScreen(SCREENS.PROFILE)
   }
 
   function handleStartLearning() {
-    alert(`Welcome, ${profile?.username}! Your learning journey starts here. 🎉`)
+    setScreen(SCREENS.DASHBOARD)
+  }
+
+  function handleLogout() {
+    setProfile(null)
+    setUsername('')
+    setScreen(SCREENS.LOGIN)
   }
 
   return (
@@ -102,6 +108,9 @@ export default function Home() {
         )}
         {screen === SCREENS.PROFILE && profile && (
           <ProfileCard key="profile" profile={profile} onStartLearning={handleStartLearning} />
+        )}
+        {screen === SCREENS.DASHBOARD && profile && (
+          <Dashboard key="dashboard" profile={profile} onLogout={handleLogout} />
         )}
       </AnimatePresence>
     </main>
