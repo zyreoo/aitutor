@@ -74,10 +74,30 @@ const QUESTION_BANK = {
     prompt: 'What is your main goal here: better grades, learning for fun, productivity, or building projects?',
     key: 'goals',
   },
-  goalClarifier: {
-    id: 'goalClarifier',
-    prompt: 'If you had to pick one priority for the next month, what would it be?',
-    key: 'goal_priority',
+  schoolChallenge: {
+    id: 'schoolChallenge',
+    prompt: 'At school, what is the hardest part for you right now: staying focused, understanding lessons, homework consistency, or test stress?',
+    key: 'school_challenge',
+  },
+  examFocus: {
+    id: 'examFocus',
+    prompt: 'Do you have any important exams coming up? If yes, which ones?',
+    key: 'exam_focus',
+  },
+  uniChallenge: {
+    id: 'uniChallenge',
+    prompt: 'At university, where do you need most support now: projects, exams, time management, or deep understanding?',
+    key: 'uni_challenge',
+  },
+  workLearningGoal: {
+    id: 'workLearningGoal',
+    prompt: 'For your work goals, what skill do you most want to improve in the next 2-3 months?',
+    key: 'work_learning_goal',
+  },
+  weeklyStudyTime: {
+    id: 'weeklyStudyTime',
+    prompt: 'How much time can you realistically invest per week for learning?',
+    key: 'weekly_study_time',
   },
   learningStyle: {
     id: 'learningStyle',
@@ -95,16 +115,20 @@ function getQuestionOrder(state) {
   const education = getEducationStage(state)
   const interests = getInterests(state)
 
-  const order = ['stage']
+  const isSchool = hasAny(education, ['school', 'high school', 'liceu', 'scoala', 'școal'])
+  const isUniversity = hasAny(education, ['university', 'college', 'facult', 'univers'])
 
-  if (hasAny(education, ['school', 'high school', 'liceu', 'scoala', 'școal'])) {
-    order.push('schoolClass')
-  }
-  if (hasAny(education, ['university', 'college', 'facult', 'univers'])) {
-    order.push('universityYear')
+  const order = ['stage', 'age']
+
+  if (isSchool) {
+    order.push('schoolClass', 'schoolChallenge', 'examFocus')
+  } else if (isUniversity) {
+    order.push('universityYear', 'uniChallenge')
+  } else {
+    order.push('workLearningGoal')
   }
 
-  order.push('age', 'interests')
+  order.push('weeklyStudyTime', 'interests')
 
   if (hasAny(interests, ['game', 'gaming', 'joc'])) order.push('gamingFocus')
   if (hasAny(interests, ['school', 'study', 'exam', 'invat', 'învăț', 'bac'])) order.push('studyFocus')
@@ -112,11 +136,6 @@ function getQuestionOrder(state) {
   if (hasAny(interests, ['sport', 'fitness', 'gym'])) order.push('sportsFocus')
 
   order.push('goals')
-
-  const goals = String(state?.goals || '').trim()
-  if (goals.length < 12) {
-    order.push('goalClarifier')
-  }
 
   order.push('learningStyle', 'supportStyle')
 
@@ -163,12 +182,13 @@ export function getQuestionPrompt(questionId, state) {
   const stageAnswer = getRecentAnswer(state, 'stage') || state?.education_stage || ''
   const interestsAnswer = getRecentAnswer(state, 'interests') || state?.interests || ''
   const goalsAnswer = getRecentAnswer(state, 'goals') || state?.goals || ''
+  const schoolClass = getRecentAnswer(state, 'schoolClass') || state?.school_class || ''
 
   switch (questionId) {
     case 'stage':
       return `${prefix}to personalize this well, are you in school, university, or already working?`
     case 'schoolClass':
-      return `Super${name ? `, ${name}` : ''}. In school you said "${stageAnswer}". What class are you in right now?`
+      return `Super${name ? `, ${name}` : ''}. Since you are in "${stageAnswer}", what class are you in right now?`
     case 'universityYear':
       return `Great${name ? `, ${name}` : ''}. You mentioned "${stageAnswer}". What year are you currently in?`
     case 'age':
@@ -185,10 +205,18 @@ export function getQuestionPrompt(questionId, state) {
       return `Great. You said "${interestsAnswer}". Do you focus more on team sports, individual performance, or fitness progression?`
     case 'goals':
       return `${prefix}what is your main goal in the next few months: better grades, learning for fun, productivity, or building projects?`
-    case 'goalClarifier':
-      return `You wrote "${goalsAnswer}". If we choose one concrete target for the next 30 days, what should it be exactly?`
+    case 'schoolChallenge':
+      return `For class ${schoolClass || 'you are in'}, what blocks your progress most right now: focus, understanding, homework routine, or exam stress?`
+    case 'examFocus':
+      return `Do you have a concrete exam target soon (for example Bac or semester tests)?`
+    case 'uniChallenge':
+      return `Based on your university path, what needs most improvement now: projects, exams, time management, or understanding complex topics?`
+    case 'workLearningGoal':
+      return `${prefix}since you are not in a school track, what practical skill do you want to grow first for work or personal projects?`
+    case 'weeklyStudyTime':
+      return `Given your schedule, how many hours per week can you keep consistently for learning?`
     case 'learningStyle':
-      return `To match your goals better, what helps you learn fastest: visuals, examples, practice, short explanations, or stories?`
+      return `To match goal "${goalsAnswer || 'your progress'}", what helps you learn fastest: visuals, examples, practice, short explanations, or stories?`
     case 'supportStyle':
       return `Last one${name ? `, ${name}` : ''}: when something is hard, what support do you prefer first: hints, full explanations, examples, or retry on your own?`
     default:
