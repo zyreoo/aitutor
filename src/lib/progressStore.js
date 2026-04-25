@@ -3,7 +3,7 @@
 
 export const DAILY_GOAL_XP = 60
 
-const KEY = 'baiamare_progress_v1'
+const KEY_PREFIX = 'baiamare_progress_v1'
 
 const DEFAULTS = {
   totalXp: 0,
@@ -14,6 +14,11 @@ const DEFAULTS = {
   lastClass: null,
   lastSubject: null,
   lastTopic: null,
+  // Most recent lesson outcome — used to drive next-lesson recommendation.
+  lastCorrect: 0,
+  lastWrong: 0,
+  lastPercentage: 0,
+  lastXpEarned: 0,
 }
 
 function todayKey() {
@@ -27,10 +32,15 @@ function isYesterday(dateStr) {
   return y.toISOString().slice(0, 10) === dateStr
 }
 
-function readRaw() {
+function getStorageKey(userId) {
+  const safeUserId = String(userId || 'anonymous').trim().toLowerCase() || 'anonymous'
+  return `${KEY_PREFIX}:${safeUserId}`
+}
+
+function readRaw(userId) {
   if (typeof window === 'undefined') return { ...DEFAULTS }
   try {
-    const stored = window.localStorage.getItem(KEY)
+    const stored = window.localStorage.getItem(getStorageKey(userId))
     if (!stored) return { ...DEFAULTS }
     return { ...DEFAULTS, ...JSON.parse(stored) }
   } catch {
@@ -38,10 +48,10 @@ function readRaw() {
   }
 }
 
-function writeRaw(data) {
+function writeRaw(userId, data) {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(data))
+    window.localStorage.setItem(getStorageKey(userId), JSON.stringify(data))
   } catch {
     /* ignore quota errors */
   }
@@ -56,17 +66,26 @@ function rolloverDaily(state) {
   return state
 }
 
-export function getProgress() {
-  const state = rolloverDaily(readRaw())
+export function getProgress(userId) {
+  const state = rolloverDaily(readRaw(userId))
   // Persist the rollover so future reads are consistent.
-  writeRaw(state)
+  writeRaw(userId, state)
   return state
 }
 
 // Adds XP earned from a single lesson completion. Updates streak + last lesson.
-export function addLessonProgress({ xpEarned = 0, selectedClass, selectedSubject, selectedTopic }) {
+export function addLessonProgress({
+  userId,
+  xpEarned = 0,
+  selectedClass,
+  selectedSubject,
+  selectedTopic,
+  correctAnswers = 0,
+  wrongAnswers = 0,
+  percentage = 0,
+}) {
   const today = todayKey()
-  let state = rolloverDaily(readRaw())
+  let state = rolloverDaily(readRaw(userId))
 
   // Streak logic — only bump when finishing on a new day.
   if (state.lastCompletedDate !== today) {
@@ -86,12 +105,16 @@ export function addLessonProgress({ xpEarned = 0, selectedClass, selectedSubject
   state.lastClass = selectedClass || state.lastClass
   state.lastSubject = selectedSubject || state.lastSubject
   state.lastTopic = selectedTopic || state.lastTopic
+  state.lastCorrect = correctAnswers
+  state.lastWrong = wrongAnswers
+  state.lastPercentage = percentage
+  state.lastXpEarned = xpEarned
 
-  writeRaw(state)
+  writeRaw(userId, state)
   return state
 }
 
-export function resetProgress() {
-  writeRaw({ ...DEFAULTS })
+export function resetProgress(userId) {
+  writeRaw(userId, { ...DEFAULTS })
   return { ...DEFAULTS }
 }
